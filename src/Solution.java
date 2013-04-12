@@ -4,7 +4,7 @@ import java.io.InputStreamReader;
 
 public class Solution {
 	public static final int INF = 1000;
-	public static final int MAXDEPH = 20;
+	public static final int MAXDEPH = 15;
 	
 	public static int Maxi(Board b,int depth){
 		
@@ -28,7 +28,7 @@ public class Solution {
 		for(Direction i: Direction.ALL){
 			if(b.CanMove(i, true)){
 				b.Move(i, true);
-				part_max = Maxi(b,depth+1);
+				part_max = Mini(b,depth+1);
 				if(part_max >= max){
 					max = part_max;
 				}
