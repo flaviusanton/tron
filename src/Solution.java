@@ -102,16 +102,8 @@ public class Solution {
 			Board b = new Board(MyPos, EnemyPos, Width, Height, MyChar);
 			b.ReadMap(in);
 			Direction move;
-			
-			while(!b.IsFinished()){
-				move = GetMove(b);
-				b.Move(move, true);
-				System.out.println(move.toString());
-				line = in.readLine();
-				move = Direction.GetMove(line);
-				b.Move(move, false);
-				b.WriteMoves();
-			}
+			move = GetMove(b);
+			System.out.println(move.toString());
 			
 			
 	//	}catch(IOException e){
