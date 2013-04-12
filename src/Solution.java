@@ -136,7 +136,7 @@ class Board {
 		this.EnemyPos = new Position(EnemyPos);
 		this.Width = Width;
 		this.Height = Height;
-		this.Board = new char[Width][Height];		
+		this.Board = new char[Height][Width];		
 		this.MyChar = MyChar;
 	}
 	
