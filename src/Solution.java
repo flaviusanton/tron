@@ -59,7 +59,7 @@ public class Solution {
 	//returneaza mutarea conform algoritmului minimax.Jucatorul curent este maxi
 	public static Direction GetMove(Board b){
 		int max = -INF,part_max = -INF;
-		Direction move = Direction.NONE;
+		Direction move = Direction.UP;
 		for(Direction i:Direction.ALL){
 			if(b.CanMove(i, true)){
 				b.Move(i, true);
