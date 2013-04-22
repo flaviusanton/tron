@@ -1,10 +1,12 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Solution {
 	public static final int INF = 1000;
-	public static final int MAXDEPH = 15;
+	public static final int MAXDEPTH = 13;
 	
 	public static int Maxi(Board b,int depth){
 		
@@ -14,7 +16,7 @@ public class Solution {
 		}
 		
 		
-		if(depth >= MAXDEPH){
+		if(depth >= MAXDEPTH){
 			return b.Eval();
 		}
 		if(b.IsFinished()){
@@ -215,8 +217,48 @@ class Board {
 	
 	public int Eval(){
 		//To Be Done in the future >:)
-		return 0;
+		return reachableCells(); 
 	}
+	
+	private int reachableCells() {
+		Queue<Position> q = new LinkedBlockingQueue<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (Board[i][j] == '-') ? false : true;
+			}
+		}
+		q.add(MyPos);
+		
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		int count = 0;
+		
+		while (!q.isEmpty()) {
+			Position pos = q.poll();
+			visited[pos.GetX()][pos.GetY()] = true;
+			
+			for (int i = 0; i < 4; i++) {
+				if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
+						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
+							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dx[i]));
+							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
+							count ++;
+						}
+			}
+		}
+		return count;
+	}
+	
+	private boolean isValid(int x, int y) {
+		if (x < 0 || y < 0)
+			return false;
+		if (x >= Height || y >= Width)
+			return false;
+		return true;
+	}
+
 	public boolean IsFinished(){
 		return IsFinished;
 	}
