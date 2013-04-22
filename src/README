@@ -2,31 +2,52 @@ Etapa 1 - Proiect - Joc Tron
 Studenti:
 1. Tabacu Raul Constantin
 2. Anton Flavius
-3. Grosu Marius Cristina
-4. Dincu Andrei - Marius
-Grupa 324CB
-Facultatea de Automatica si Calculatoare
-Universitatea Politehnica Bucuresti
+3. Grosu Maria Cristina
+4. Dincu Andrei - Marius 
 
-
-Descrierea modului de implementare al bot-ului pentru etapa 1:
-In implementarea bot-ului nostru am folosit un algoritm clasic de tipul minimax, asemanator celui din laboratorul 5 de PA.Astfel, pentru aceasta etapa nu am incercat sa folosim si tehnica alpha-beta pruning, dar pentru a imbunatati nivelul de inteligenta al bot-ului nostru, vom face acest lucru pentru etapele urmatoare.In plus, nu am folosit algoritmul negamax, ci pur si simplu am ales sa implementam doua functii, una Mini si alta Maxi.Totodata, am ales adancimea maxima pentru a aplica algoritmul minimax, ca fiind 15, iar atunci cand ajungem la o astfel de adancime, vom fi nevoiti sa aplicam o functie de evaluare, care pentru momentul de fata intoarce de fiecare data valoarea 0.
-Desi complexitatea functiei de evaluare este una scazuta, aceasta a fost suficienta pentru a bate botii pusi la dispozitie de echipa de la PA pentru prima etapa.
-
+Descrierea modului de implementare si a bot-ului pentru etapa 1:
+Im implementarea bot-ului nostru am folosit un algoritm clasic de tipul minimax
+asemanator celui din laboratorul 5 de PA.Astfel, pentru aceasta etapa nu am 
+incercat sa folosim si tehnica alfa-beta pruning, dar pentru a imbunatati 
+nivelul de inteligenta al bot-ului nostru, vom face acest lucru pentru etapele
+urmatoare.In plus,nu am folosit algoritmul negamax, ci pur si simplu am ales
+sa implementam doua functii, una Mini si alta Maxi.Totodata, am ales adancimea
+maxima egala cu 15, iar atunci cand ajungem la o astfel de adancime, vom fi
+nevoiti sa aplicam o functie de evaluare, care pentru momentul de fata intoarce
+de fiecare data valoarea 0.
+Desi complexitatea functiei de evaluare este una scazuta, aceasta a fost 
+suficienta pentru a bate botii pusi la dispozitie de echipa de la PA pentru
+prima etapa.
+ 
 Alte detalii legate de implementare:
-1. tipul enum Direction - reprezinta tipurile de mutari pe care le poate face un jucator la un anumit pas considerand ca acesta este nerestrictionat(UP,DOWN,LEFT,RIGHT).Aici am implementat si metoda GetOpposite() care intoarce mutarea in directia opusa celei date in parametru.
-In plus, se suprascrie si metoda toString(), pentru a afisa  sub forma de sir de caractere mutarea data in parametru.
+1. tipul enum Direction - reprezinta tipurile de mutari pe care le poate
+face un jucator la un anumit pas considerand ca acesta este nerestrictionat 
+(UP,DOWN,LEFT,RIGHT).Aici am implementat si metoda GetOpposite() care intoarce
+mutarea in directia opusa celei date in parametru. In plus, se suprascrie si 
+metoda toString(), pentru a afisa  sub forma de sir de caractere mutarea data 
+in parametru.
+ 
+2. clasa Board - codifica o harta si pune la dispozitie cateva metoda importante 
+ce implementeaza mutari pe harta.Harta este defapt retinuta sub forma unui 
+vector de String-uri (matrice de caractere).
+  - constructorul initializeaza dimensiunea hartii, initializeaza harta si 
+memoreaza pozitiile celor 2 jucatori
+  - metoda ReadMap() ofera posibilitatea de citire a hartii
+  - metoda Move() primeste ca parametru directia si o valoare de tip boolean
+care specifica cine muta
+  - metoda WriteMoves() modifica harta si returneaza daca cei doi jucatori s-au 
+ciocnit
+  - metoda CanMove() specifica daca poate fi executata mutarea in directia
+specificata in parametru
+  - metoda Eval() - functia de evaluare folosita in algoritmul minimax - pentru
+moment returneaza 0
+  - metoda IsFinished() - specifica daca jocul s-a incheiat
+  - metoda HaveIWon() - specifica daca castigatorul sunt eu
+  - metoda ClearMove() - atunci cand ma intorc din recursivitate, va trebui sa
+ sterg mutarile pe care le-am efectuat in recursivitate
 
-2. clasa Board - codifica o harta si pune la dispozitie cateva metoda importante ce implementeaza mutari pe harta.Harta este defapt retinuta sub forma unui vector de String-uri (matrice de caractere).
- - constructorul initializeaza dimensiunea hartii, initializeaza harta si memoreaza pozitiile celor 2 jucatori
- - metoda ReadMap() ofera posibilitatea de citire a hartii
- - metoda Move() primeste ca parametru directia si o valoare de tip boolean care specifica cine muta
- - metoda WriteMoves() modifica harta si returneaza daca cei doi jucatori s-au ciocnit
- - metoda CanMove() specifica daca poate fi executata mutarea in directia specificata in parametru
- - metoda Eval() - functia de evaluare folosita in algoritmul minimax - pentru moment returneaza 0
- - metoda IsFinished() - specifica daca jocul s-a incheiat
- - metoda HaveIWon() - specifica daca castigatorul sunt eu
- - metoda ClearMove() - atunci cand ma intorc din recursivitate, va trebui sa sterg mutarile pe care le-am efectuat in recursivitate
-
-3. metoda main() - efectueaza citirile elementare precum codificarea jucatorului meu, apeleaza constructorul pentru crearea unui obiect de tipul Board, apeleaza metoda de citire a matricei, apeleaza metoda GetMove(), care intoarce cea mai buna mutare, afiseaza mutarea indicata de metoda GetMove().
+3. metoda main() - efectueaza citirile elementare precum codificarea bot-ului
+meu, apeleaza constructorul pentru crearea unui obiect de tipul Board, apeleaza 
+metoda de citire a matricei, apeleaza metoda GetMove(), care intoarce cea mai 
+buna mutare, afiseaza mutarea indicata de metoda GetMove().
 
