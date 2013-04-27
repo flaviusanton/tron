@@ -6,7 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Solution {
 	public static final int INF = 100000;
-	public static final int MAXDEPTH = 13;
+	public static int MAXDEPTH = 15;
 	public static int playerDistance = 0;
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
@@ -115,7 +115,17 @@ public class Solution {
 			Direction move;
 			
 			playerDistance = (int)Math.sqrt((MyPos.GetX() - EnemyPos.GetX())*(MyPos.GetX() - EnemyPos.GetX())
-					+ (MyPos.GetY() - EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY())); 
+					+ (MyPos.GetY() - EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY()));
+			
+			if (Width + Height < 31) {
+				MAXDEPTH = 15;
+			} else if (Width + Height < 51) {
+				MAXDEPTH = 13;
+			} else if (Width + Height < 71) {
+				MAXDEPTH = 9;
+			} else {
+				MAXDEPTH = 7;
+			}
 			
 			move = GetMove(b);
 			System.out.println(move.toString());
@@ -225,9 +235,9 @@ class Board {
 	public int Eval(){
 		//To Be Done in the future >:)
 		
-		if ((Board.Width > 30 || Board.Height > 30) && Solution.playerDistance > 20) {
-			return 0;
-		}
+		//if ((Board.Width > 30 || Board.Height > 30) && Solution.playerDistance > 20) {
+		//	return 0;
+		//}
 		return reachableCells(MyPos) - reachableCells(EnemyPos); 
 	}
 	
