@@ -5,8 +5,9 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Solution {
-	public static final int INF = 1000;
+	public static final int INF = 100000;
 	public static final int MAXDEPTH = 13;
+	public static int playerDistance = 0;
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
 		
@@ -27,20 +28,22 @@ public class Solution {
 			}
 		}
 		int part_max = -INF;
-		for(Direction i: Direction.ALL){
+		for(Direction i : Direction.ALL){
 			if(b.CanMove(i, true)){
 				b.Move(i, true);
 				part_max = Mini(b,depth+1,alfa,beta);
-				if (part_max >= beta) return beta;
-				if(part_max >= alfa){
+				
+				if (part_max >= beta) {
+					b.ClearMove(i, true);
+					return beta;
+				}
+				if(part_max > alfa){
 					alfa = part_max;
 				}
 				b.ClearMove(i, true);
 			}
 		}
 		return alfa;
-		
-		
 	}
 	
 	public static int Mini(Board b,int depth,int alfa,int beta){
@@ -49,8 +52,12 @@ public class Solution {
 			if(b.CanMove(i, false)){
 				b.Move(i, false);
 				part_min = Maxi(b,depth+1,alfa,beta);
-				if (part_min <= alfa) return alfa;
-				if(part_min <= beta){
+				
+				if (part_min <= alfa) {
+					b.ClearMove(i, false);
+					return alfa;
+				}
+				if(part_min < beta){
 					beta = part_min;
 				}
 				b.ClearMove(i, false);
@@ -106,6 +113,10 @@ public class Solution {
 			Board b = new Board(MyPos, EnemyPos, Width, Height, MyChar);
 			b.ReadMap(in);
 			Direction move;
+			
+			playerDistance = (int)Math.sqrt((MyPos.GetX() - EnemyPos.GetX())*(MyPos.GetX() - EnemyPos.GetX())
+					+ (MyPos.GetY() - EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY())); 
+			
 			move = GetMove(b);
 			System.out.println(move.toString());
 	}
@@ -213,10 +224,14 @@ class Board {
 	
 	public int Eval(){
 		//To Be Done in the future >:)
-		return reachableCells(); 
+		
+		if ((Board.Width > 30 || Board.Height > 30) && Solution.playerDistance > 20) {
+			return 0;
+		}
+		return reachableCells(MyPos) - reachableCells(EnemyPos); 
 	}
 	
-	private int reachableCells() {
+	private int reachableCells(Position start) {
 		Queue<Position> q = new LinkedBlockingQueue<Position>();
 		boolean[][] visited = new boolean[Height][Width];
 		
@@ -225,7 +240,7 @@ class Board {
 				visited[i][j] = (board[i][j] == '-') ? false : true;
 			}
 		}
-		q.add(MyPos);
+		q.add(start);
 		
 		int[] dx = {-1, 0, 1, 0};
 		int[] dy = {0, 1, 0, -1};
@@ -238,7 +253,7 @@ class Board {
 			for (int i = 0; i < 4; i++) {
 				if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
 						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
-							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dx[i]));
+							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
 							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
 							count ++;
 						}
