@@ -13,8 +13,8 @@ public class Solution {
 		
 		
 		if(b.WriteMoves()){//Mutarile se scriu pe Maxi deoarece de aici incepe un set nou de mutari(mutarile sunt simultane)
-			return INF-10;//Jucatorii s-au ciocnit :D
-						//Am considerat ca pentru Maxi remiza este aproape la fel de buna ca victoria(Nu vrem remiza)
+			return -INF+10;//Jucatorii s-au ciocnit :D
+						//Am considerat ca pentru Maxi remiza este aproape la fel de proasta ca infrangerea(Nu vrem remiza)
 		}
 		
 		
@@ -151,6 +151,10 @@ class Board {
 	private static char MyChar;
 	private static boolean IsFinished = false;
 	private static boolean HaveIWon = false;
+	
+	private static Position queue[] = new Position[250];
+	private boolean[][] visited ;
+	private int[][] time; 
 	public Board(Position MyPos,Position EnemyPos,int Width, int Height,char MyChar){
 		this.MyPos = new Position(MyPos);
 		this.EnemyPos = new Position(EnemyPos);
@@ -158,6 +162,8 @@ class Board {
 		Board.Height = Height;
 		this.board = new long[Height];		
 		Board.MyChar = MyChar;
+		visited = new boolean[Height][Width];
+		time = new int[Height][Width];
 	}
 	
 	//Sper sa folosim constructorul asta
@@ -245,6 +251,52 @@ class Board {
 		return reachableCells(MyPos) - reachableCells(EnemyPos); 
 	}
 	
+	private int longestReachebleRoad(){
+		Position start = new Position(EnemyPos);
+		int p=0,u=0,count=0;
+		int t;
+		queue[p] = start;
+		boolean[][] visited = new boolean[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				time[i][j] = ((board[i] & (1<<j)) == 0) ? 1000 : -1;
+			}
+		}
+		time[start.GetX()][start.GetY()] = 0;
+		
+		while(p <= u){
+			start = queue[p++];
+			t = time[start.GetX()][start.GetY()];
+			for(Direction i: Direction.ALL){
+				start.Move(i);
+				if(isValid(start.GetX(),start.GetY()) && (time[start.GetX()][start.GetY()] >= t+1)){
+					time[start.GetX()][start.GetY()] = t+1;
+					queue[++u] = new Position(start);
+				}
+				start.Move(Direction.GetOpposite(i));
+			}
+		}
+		p = 0;
+		start = new Position(MyPos);
+		queue[p] = start;
+		while(p <= u){
+			start = queue[p--];
+			t = time[start.GetX()][start.GetY()];
+			for(Direction i: Direction.ALL){
+				start.Move(i);
+				if(isValid(start.GetX(),start.GetY()) && (time[start.GetX()][start.GetY()] > t+1)){
+					if(t > count){
+						count = t;
+					}
+					time[start.GetX()][start.GetY()] = t+1;
+					queue[++p] = new Position(start);
+				}
+				start.Move(Direction.GetOpposite(i));
+			}
+		}
+		return count;
+	}
 	private int reachableCells(Position start) {
 		Queue<Position> q = new LinkedBlockingQueue<Position>();
 		boolean[][] visited = new boolean[Height][Width];
@@ -274,6 +326,7 @@ class Board {
 			}
 		}
 		return count;
+		
 	}
 	
 	private boolean isValid(int x, int y) {
@@ -309,7 +362,7 @@ class Board {
 
 enum Direction{
 	UP,DOWN,LEFT,RIGHT,NONE;
-	public static Direction[] ALL = {UP,DOWN,LEFT,RIGHT};
+	public static Direction[] ALL = {UP,LEFT,RIGHT,DOWN};
 	public static Direction GetOpposite(Direction d){
 		switch(d){
 		case UP:
