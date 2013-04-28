@@ -6,14 +6,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Solution {
 	public static final int INF = 1000;
-	public static final int MAXDEPTH = 13;
+	public static final int MAXDEPTH = 30;
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
 		
 		
 		if(b.WriteMoves()){//Mutarile se scriu pe Maxi deoarece de aici incepe un set nou de mutari(mutarile sunt simultane)
-			return INF;//Jucatorii s-au ciocnit :D
-						//Am considerat ca pentru Maxi remiza este la fel de buna ca victoria(Nu vrem remiza)
+			return INF-10;//Jucatorii s-au ciocnit :D
+						//Am considerat ca pentru Maxi remiza este aproape la fel de buna ca victoria(Nu vrem remiza)
 		}
 		
 		
@@ -218,6 +218,7 @@ class Board {
 	public int Eval(){
 		//To Be Done in the future >:)
 		return reachableCells(); 
+		//return 0;
 	}
 	
 	private int reachableCells() {
