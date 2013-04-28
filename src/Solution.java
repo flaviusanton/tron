@@ -6,13 +6,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class Solution {
 	public static final int INF = 100000;
-	public static int MAXDEPTH = 15;
+	public static int MAXDEPTH = 12;
 	public static int playerDistance = 0;
 
 	public static int Maxi(Board b,int depth,int alfa,int beta){
 		
 		
 		if(b.WriteMoves()){//Mutarile se scriu pe Maxi deoarece de aici incepe un set nou de mutari(mutarile sunt simultane)
+			//System.out.println("Remiza");
 			return -INF+10;//Jucatorii s-au ciocnit :D
 						//Am considerat ca pentru Maxi remiza este aproape la fel de proasta ca infrangerea(Nu vrem remiza)
 		}
@@ -23,12 +24,14 @@ public class Solution {
 		}
 		if(b.IsFinished()){
 			if(b.HaveIWon()){
+				//System.out.println("Castig");
 				return INF;
 			}else{
+				//.out.println("Pierd");
 				return -INF;
 			}
 		}
-		int part_max = -INF;
+		int part_max = -INF,max = -INF;;
 		for(Direction i : Direction.ALL){
 			if(b.CanMove(i, true)){
 				b.Move(i, true);
@@ -41,14 +44,20 @@ public class Solution {
 				if(part_max > alfa){
 					alfa = part_max;
 				}
+				/*if(part_max >= max){
+					max = part_max;
+				}*/
 				b.ClearMove(i, true);
 			}
 		}
+		/*if(part_max == -INF){
+			System.out.println("Maxi:Nu e mutare");
+		}*/
 		return alfa;
 	}
 	
 	public static int Mini(Board b,int depth,int alfa,int beta){
-		int part_min = INF;
+		int part_min = INF,min = INF;
 		for(Direction i:Direction.ALL){
 			if(b.CanMove(i, false)){
 				b.Move(i, false);
@@ -60,17 +69,23 @@ public class Solution {
 				}
 				if(part_min < beta){
 					beta = part_min;
-				}
+				}/*
+				if(part_min <= min){
+					min = part_min;
+				}*/
 				b.ClearMove(i, false);
 			}
 		}
-			return beta;
+		/*if(part_min == -INF){
+			System.out.println("Mini:Nu e mutare");
+		}*/
+		return beta;
 	}
 	
 	
 	//returneaza mutarea conform algoritmului minimax.Jucatorul curent este maxi
 	public static Direction GetMove(Board b){
-		int max = -INF,part_max = -INF;
+		int max = -INF-1,part_max = -INF;
 		Direction move = Direction.UP;
 		for(Direction i:Direction.ALL){
 			if(b.CanMove(i, true)){
@@ -83,6 +98,7 @@ public class Solution {
 				b.ClearMove(i, true);
 			}
 		}
+		//System.out.println("Move cost:"+max);
 		return move;
 		
 	}
@@ -119,7 +135,7 @@ public class Solution {
 			playerDistance = (int)Math.sqrt((MyPos.GetX() - EnemyPos.GetX())*(MyPos.GetX() - EnemyPos.GetX())
 					+ (MyPos.GetY() - EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY()));
 			
-			if (Width + Height < 31) {
+		/*	if (Width + Height < 31) {
 				MAXDEPTH = 15;
 			} else if (Width + Height < 51) {
 				MAXDEPTH = 13;
@@ -128,7 +144,7 @@ public class Solution {
 			} else {
 				MAXDEPTH = 7;
 			}
-			
+			*/
 			move = GetMove(b);
 			System.out.println(move.toString());
 	}
@@ -152,7 +168,7 @@ class Board {
 	private static boolean IsFinished = false;
 	private static boolean HaveIWon = false;
 	
-	private static Position queue[] = new Position[250];
+	private static Position queue[] = new Position[2500];
 	private boolean[][] visited ;
 	private int[][] time; 
 	public Board(Position MyPos,Position EnemyPos,int Width, int Height,char MyChar){
@@ -184,7 +200,7 @@ class Board {
 				line = in.readLine().toCharArray();
 				for(j = 0 ; j < Width ; j++){
 					if(line[j] != '-'){
-						board[i] = board[i] | (1<<j);
+						board[i] = board[i] | (((long)1)<<j);
 					}
 					//board[i][j] = line[j];
 				}
@@ -215,8 +231,8 @@ class Board {
 	}
 	//Scrie mutarile in board.Intoarce true daca cei 2 jucatori s-au ciocnit
 	public boolean WriteMoves(){
-		board[MyPos.GetX()] = board[MyPos.GetX()] | (1<<MyPos.GetY());
-		board[EnemyPos.GetX()] = board[EnemyPos.GetX()] | (1<<EnemyPos.GetY());// = (MyChar == 'r') ? 'g' : 'r';
+		board[MyPos.GetX()] = board[MyPos.GetX()] | (((long)1)<<MyPos.GetY());
+		board[EnemyPos.GetX()] = board[EnemyPos.GetX()] | (((long)1)<<EnemyPos.GetY());// = (MyChar == 'r') ? 'g' : 'r';
 		return MyPos.equals(EnemyPos);
 	}
 	
@@ -234,7 +250,7 @@ class Board {
 			return false;//Just to make sure
 		}
 		Pos.Move(move);
-		if(Pos.GetX() < 0 || Pos.GetX() >= Height || Pos.GetY() < 0 || Pos.GetY() >= Width || ((board[Pos.GetX()] & (1<<Pos.GetY())) != 0)){
+		if(Pos.GetX() < 0 || Pos.GetX() >= Height || Pos.GetY() < 0 || Pos.GetY() >= Width || ((board[Pos.GetX()] & (((long)1)<<Pos.GetY())) != 0)){
 			Pos.Move(Direction.GetOpposite(move));
 			return false;
 		}
@@ -248,7 +264,7 @@ class Board {
 		//if ((Board.Width > 30 || Board.Height > 30) && Solution.playerDistance > 20) {
 		//	return 0;
 		//}
-		return reachableCells(MyPos) - reachableCells(EnemyPos); 
+		return longestReachebleRoad(); 
 	}
 	
 	private int longestReachebleRoad(){
@@ -256,21 +272,21 @@ class Board {
 		int p=0,u=0,count=0;
 		int t;
 		queue[p] = start;
-		boolean[][] visited = new boolean[Height][Width];
+		//boolean[][] visited = new boolean[Height][Width];
 		
 		for (int i = 0; i < Height; i++) {
 			for (int j = 0; j < Width; j++) {
-				time[i][j] = ((board[i] & (1<<j)) == 0) ? 1000 : -1;
+				time[i][j] = ((board[i] & (((long)1)<<j)) == 0) ? 10000 : -1;
 			}
 		}
-		time[start.GetX()][start.GetY()] = 0;
+		time[start.GetX()][start.GetY()] = 1;
 		
 		while(p <= u){
 			start = queue[p++];
 			t = time[start.GetX()][start.GetY()];
 			for(Direction i: Direction.ALL){
 				start.Move(i);
-				if(isValid(start.GetX(),start.GetY()) && (time[start.GetX()][start.GetY()] >= t+1)){
+				if(isValid(start.GetX(),start.GetY()) && (time[start.GetX()][start.GetY()] > t+1)){
 					time[start.GetX()][start.GetY()] = t+1;
 					queue[++u] = new Position(start);
 				}
@@ -279,8 +295,9 @@ class Board {
 		}
 		p = 0;
 		start = new Position(MyPos);
+		time[start.GetX()][start.GetY()] = 0;
 		queue[p] = start;
-		while(p <= u){
+		while(p >= 0){
 			start = queue[p--];
 			t = time[start.GetX()][start.GetY()];
 			for(Direction i: Direction.ALL){
@@ -303,7 +320,7 @@ class Board {
 		
 		for (int i = 0; i < Height; i++) {
 			for (int j = 0; j < Width; j++) {
-				visited[i][j] = ((board[i] & (1<<j)) == 0) ? false : true;
+				visited[i][j] = ((board[i] & (((long)1)<<j)) == 0) ? false : true;
 			}
 		}
 		q.add(start);
@@ -347,10 +364,10 @@ class Board {
 	//Face roll-back pentru mutarea move.DoIMove determina ce jucator a facut mutarea
 	public void ClearMove(Direction move,boolean DoIMove){
 		if(DoIMove){
-			board[MyPos.GetX()] = board[MyPos.GetX()] ^ (1<<MyPos.GetY());
+			board[MyPos.GetX()] = board[MyPos.GetX()] ^ (((long)1)<<MyPos.GetY());
 			MyPos.Move(Direction.GetOpposite(move));
 		}else{
-			board[EnemyPos.GetX()] = board[EnemyPos.GetX()] ^ (1<<EnemyPos.GetY());
+			board[EnemyPos.GetX()] = board[EnemyPos.GetX()] ^ (((long)1)<<EnemyPos.GetY());
 			EnemyPos.Move(Direction.GetOpposite(move));
 		}
 	}
