@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Queue;
 import java.util.LinkedList;
 
@@ -8,6 +10,7 @@ public class Solution {
 	public static final int INF = 100000;
 	public static int MAXDEPTH = 18;
 	public static int playerDistance = 0;
+	public static HashMap<char[][], Integer> scores = new HashMap<char[][], Integer>();
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
 		
@@ -128,10 +131,6 @@ public class Solution {
 			}
 			
 			move = GetMove(b);
-			//b.bfs(MyPos);
-			//System.out.println(MyPos.GetX() + " " + MyPos.GetY());
-			//System.out.println(EnemyPos.GetX() + " " + EnemyPos.GetY());
-			//System.out.println(b.bfs(MyPos));
 			System.out.println(move.toString());
 	}
 }
@@ -167,10 +166,7 @@ class Board {
 	public Board(Board b){
 		MyPos = new Position(b.MyPos);
 		EnemyPos = new Position(b.EnemyPos);
-		//Width = Board.Width;
-		//Height = Board.Height;
 		board = b.board.clone();
-		//MyChar = Board.MyChar;
 	}
 	
 	public void ReadMap(BufferedReader in){
@@ -237,11 +233,6 @@ class Board {
 	}
 	
 	public int Eval(){
-		//To Be Done in the future >:)
-		
-		//if ((Board.Width > 30 || Board.Height > 30) && Solution.playerDistance > 20) {
-		//	return 0;
-		//}
 		int x = bfs(MyPos);
 		if (x == -1) return reachableCells(MyPos) - reachableCells(EnemyPos);
 		return x;
@@ -261,17 +252,15 @@ class Board {
 		int counter = 0;
 		while (!q.isEmpty()) {
 			Position pos = q.poll();
-			//System.out.println(pos.GetX() + " " + pos.GetY() + " " + EnemyPos.GetX() + " " + EnemyPos.GetY());
 			if (pos.GetX() == EnemyPos.GetX() && pos.GetY() == EnemyPos.GetY()) {
-				//System.out.println("A ajuns aici");
 				return counter;
 			}
+			counter ++;
 			for (int k = 0;k < 4;k ++)
 				if (isValid(pos.GetX() + dx[k], pos.GetY() + dy[k]) && 
 						visited[pos.GetX() + dx[k]][pos.GetY() + dy[k]] == false) {
 					q.add(new Position(pos.GetX() + dx[k],pos.GetY() + dy[k]));
 					visited[pos.GetX() + dx[k]][pos.GetY() + dy[k]] = true;
-					counter ++;
 				}
 				else if (isValid(pos.GetX() + dx[k], pos.GetY() + dy[k]) &&
 						pos.GetX() + dx[k] == EnemyPos.GetX() && pos.GetY() + dy[k] == EnemyPos.GetY()) {
@@ -451,4 +440,7 @@ class Position {
 	public boolean equals(Position p){
 		return (X == p.X) && (Y == p.Y);
 	}
+	
+	
+	
 }
