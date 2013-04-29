@@ -2,11 +2,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Solution {
 	public static final int INF = 100000;
-	public static int MAXDEPTH = 12;
+	public static int MAXDEPTH = 18;
 	public static int playerDistance = 0;
 
 	public static int Maxi(Board b,int depth,int alfa,int beta){
@@ -168,6 +169,8 @@ class Board {
 	private static boolean IsFinished = false;
 	private static boolean HaveIWon = false;
 	
+	private static Random rand = new Random();
+	
 	private static Position queue[] = new Position[2500];
 	private boolean[][] visited ;
 	private int[][] time; 
@@ -270,13 +273,14 @@ class Board {
 	private int longestReachebleRoad(){
 		Position start = new Position(EnemyPos);
 		int p=0,u=0,count=0;
-		int t;
+		int t,taux;
 		queue[p] = start;
 		//boolean[][] visited = new boolean[Height][Width];
 		
 		for (int i = 0; i < Height; i++) {
 			for (int j = 0; j < Width; j++) {
 				time[i][j] = ((board[i] & (((long)1)<<j)) == 0) ? 10000 : -1;
+				visited[i][j] = false;
 			}
 		}
 		time[start.GetX()][start.GetY()] = 1;
@@ -286,6 +290,7 @@ class Board {
 			t = time[start.GetX()][start.GetY()];
 			for(Direction i: Direction.ALL){
 				start.Move(i);
+				taux = time[start.GetX()][start.GetY()]; 
 				if(isValid(start.GetX(),start.GetY()) && (time[start.GetX()][start.GetY()] > t+1)){
 					time[start.GetX()][start.GetY()] = t+1;
 					queue[++u] = new Position(start);
@@ -296,16 +301,18 @@ class Board {
 		p = 0;
 		start = new Position(MyPos);
 		time[start.GetX()][start.GetY()] = 0;
+		visited[start.GetX()][start.GetY()] = true;
 		queue[p] = start;
 		while(p >= 0){
 			start = queue[p--];
 			t = time[start.GetX()][start.GetY()];
 			for(Direction i: Direction.ALL){
 				start.Move(i);
-				if(isValid(start.GetX(),start.GetY()) && (time[start.GetX()][start.GetY()] > t+1)){
+				if(isValid(start.GetX(),start.GetY()) && (GetRanomRange(time[start.GetX()][start.GetY()]) > t+1) && (!visited[start.GetX()][start.GetY()]) ){
 					if(t > count){
 						count = t;
 					}
+					visited[start.GetX()][start.GetY()] = true;
 					time[start.GetX()][start.GetY()] = t+1;
 					queue[++p] = new Position(start);
 				}
@@ -314,6 +321,11 @@ class Board {
 		}
 		return count;
 	}
+	private int GetRanomRange(int t){
+		return t+((rand.nextInt()+1)%((t>>2)+2));
+		
+	}
+	
 	private int reachableCells(Position start) {
 		Queue<Position> q = new LinkedBlockingQueue<Position>();
 		boolean[][] visited = new boolean[Height][Width];
