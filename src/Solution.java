@@ -2,18 +2,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
 
 public class Solution {
-	public static final int INF = 1000;
-	public static final int MAXDEPTH = 30;
+	public static final int INF = 100000;
+	public static int MAXDEPTH = 18;
+	public static int playerDistance = 0;
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
 		
 		
 		if(b.WriteMoves()){//Mutarile se scriu pe Maxi deoarece de aici incepe un set nou de mutari(mutarile sunt simultane)
-			return INF-10;//Jucatorii s-au ciocnit :D
-						//Am considerat ca pentru Maxi remiza este aproape la fel de buna ca victoria(Nu vrem remiza)
+			return 0;//Jucatorii s-au ciocnit :D
 		}
 		
 		
@@ -28,20 +28,22 @@ public class Solution {
 			}
 		}
 		int part_max = -INF;
-		for(Direction i: Direction.ALL){
+		for(Direction i : Direction.ALL){
 			if(b.CanMove(i, true)){
 				b.Move(i, true);
 				part_max = Mini(b,depth+1,alfa,beta);
-				if (part_max >= beta) return beta;
-				if(part_max >= alfa){
+				
+				if (part_max >= beta) {
+					b.ClearMove(i, true);
+					return beta;
+				}
+				if(part_max > alfa){
 					alfa = part_max;
 				}
 				b.ClearMove(i, true);
 			}
 		}
 		return alfa;
-		
-		
 	}
 	
 	public static int Mini(Board b,int depth,int alfa,int beta){
@@ -50,8 +52,12 @@ public class Solution {
 			if(b.CanMove(i, false)){
 				b.Move(i, false);
 				part_min = Maxi(b,depth+1,alfa,beta);
-				if (part_min <= alfa) return alfa;
-				if(part_min <= beta){
+				
+				if (part_min <= alfa) {
+					b.ClearMove(i, false);
+					return alfa;
+				}
+				if(part_min < beta){
 					beta = part_min;
 				}
 				b.ClearMove(i, false);
@@ -81,7 +87,6 @@ public class Solution {
 	}
 	
 	public static void main(String[] args) throws IOException{
-		//System.out.println(Long.MAX_VALUE);
 		
 		//try{
 			String line;
@@ -108,7 +113,25 @@ public class Solution {
 			Board b = new Board(MyPos, EnemyPos, Width, Height, MyChar);
 			b.ReadMap(in);
 			Direction move;
+			
+			playerDistance = (int)Math.sqrt((MyPos.GetX() - EnemyPos.GetX())*(MyPos.GetX() - EnemyPos.GetX())
+					+ (MyPos.GetY() - EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY()));
+			
+			if (Width + Height < 31) {
+				MAXDEPTH = 17;
+			} else if (Width + Height < 51) {
+				MAXDEPTH = 15;
+			} else if (Width + Height < 71) {
+				MAXDEPTH = 11;
+			} else {
+				MAXDEPTH = 9;
+			}
+			
 			move = GetMove(b);
+			//b.bfs(MyPos);
+			//System.out.println(MyPos.GetX() + " " + MyPos.GetY());
+			//System.out.println(EnemyPos.GetX() + " " + EnemyPos.GetY());
+			//System.out.println(b.bfs(MyPos));
 			System.out.println(move.toString());
 	}
 }
@@ -124,7 +147,8 @@ public class Solution {
  */
 class Board {
 	private Position MyPos,EnemyPos;
-	private long[] board;
+	private char[][] board;
+	
 	
 	public static int Width=-1,Height=-1;
 	private static char MyChar;
@@ -135,7 +159,7 @@ class Board {
 		this.EnemyPos = new Position(EnemyPos);
 		Board.Width = Width;
 		Board.Height = Height;
-		this.board = new long[Height];		
+		this.board = new char[Height][Width];		
 		Board.MyChar = MyChar;
 	}
 	
@@ -156,10 +180,7 @@ class Board {
 			for( i = 0 ; i < Height ; i++){
 				line = in.readLine().toCharArray();
 				for(j = 0 ; j < Width ; j++){
-					if(line[j] != '-'){
-						board[i] = board[i] | (1<<j);
-					}
-					//board[i][j] = line[j];
+					board[i][j] = line[j];
 				}
 			}
 		}catch (IOException e){
@@ -188,8 +209,8 @@ class Board {
 	}
 	//Scrie mutarile in board.Intoarce true daca cei 2 jucatori s-au ciocnit
 	public boolean WriteMoves(){
-		board[MyPos.GetX()] = board[MyPos.GetX()] | (1<<MyPos.GetY());
-		board[EnemyPos.GetX()] = board[EnemyPos.GetX()] | (1<<EnemyPos.GetY());// = (MyChar == 'r') ? 'g' : 'r';
+		board[MyPos.GetX()][MyPos.GetY()] = MyChar;
+		board[EnemyPos.GetX()][EnemyPos.GetY()] = (MyChar == 'r') ? 'g' : 'r';
 		return MyPos.equals(EnemyPos);
 	}
 	
@@ -207,7 +228,7 @@ class Board {
 			return false;//Just to make sure
 		}
 		Pos.Move(move);
-		if(Pos.GetX() < 0 || Pos.GetX() >= Height || Pos.GetY() < 0 || Pos.GetY() >= Width || ((board[Pos.GetX()] & (1<<Pos.GetY())) != 0)){
+		if(Pos.GetX() < 0 || Pos.GetX() >= Height || Pos.GetY() < 0 || Pos.GetY() >= Width || board[Pos.GetX()][Pos.GetY()] != '-'){
 			Pos.Move(Direction.GetOpposite(move));
 			return false;
 		}
@@ -217,20 +238,58 @@ class Board {
 	
 	public int Eval(){
 		//To Be Done in the future >:)
-		return reachableCells(); 
-		//return 0;
+		
+		//if ((Board.Width > 30 || Board.Height > 30) && Solution.playerDistance > 20) {
+		//	return 0;
+		//}
+		int x = bfs(MyPos);
+		if (x == -1) return reachableCells(MyPos) - reachableCells(EnemyPos);
+		return x;
 	}
 	
-	private int reachableCells() {
-		Queue<Position> q = new LinkedBlockingQueue<Position>();
+	public int bfs(Position start) {
+		Queue<Position> q = new LinkedList<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		for (int i = 0;i < Height;i ++)
+			for (int j = 0;j < Width;j ++)
+				if (board[i][j] == '-') visited[i][j] = false;
+				else visited[i][j] = true;
+		q.add(start);
+		visited[start.GetX()][start.GetY()] = true;
+		int[] dx = {-1,0,1,0};
+		int[] dy = {0,1,0,-1};
+		int counter = 0;
+		while (!q.isEmpty()) {
+			Position pos = q.poll();
+			//System.out.println(pos.GetX() + " " + pos.GetY() + " " + EnemyPos.GetX() + " " + EnemyPos.GetY());
+			if (pos.GetX() == EnemyPos.GetX() && pos.GetY() == EnemyPos.GetY()) {
+				//System.out.println("A ajuns aici");
+				return counter;
+			}
+			for (int k = 0;k < 4;k ++)
+				if (isValid(pos.GetX() + dx[k], pos.GetY() + dy[k]) && 
+						visited[pos.GetX() + dx[k]][pos.GetY() + dy[k]] == false) {
+					q.add(new Position(pos.GetX() + dx[k],pos.GetY() + dy[k]));
+					visited[pos.GetX() + dx[k]][pos.GetY() + dy[k]] = true;
+					counter ++;
+				}
+				else if (isValid(pos.GetX() + dx[k], pos.GetY() + dy[k]) &&
+						pos.GetX() + dx[k] == EnemyPos.GetX() && pos.GetY() + dy[k] == EnemyPos.GetY()) {
+					return counter;
+				}
+		}
+		return -1;
+	}
+	private int reachableCells(Position start) {
+		Queue<Position> q = new LinkedList<Position>();
 		boolean[][] visited = new boolean[Height][Width];
 		
 		for (int i = 0; i < Height; i++) {
 			for (int j = 0; j < Width; j++) {
-				visited[i][j] = ((board[i] & (1<<j)) == 0) ? false : true;
+				visited[i][j] = (board[i][j] == '-') ? false : true;
 			}
 		}
-		q.add(MyPos);
+		q.add(start);
 		
 		int[] dx = {-1, 0, 1, 0};
 		int[] dy = {0, 1, 0, -1};
@@ -243,7 +302,7 @@ class Board {
 			for (int i = 0; i < 4; i++) {
 				if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
 						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
-							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dx[i]));
+							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
 							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
 							count ++;
 						}
@@ -270,10 +329,10 @@ class Board {
 	//Face roll-back pentru mutarea move.DoIMove determina ce jucator a facut mutarea
 	public void ClearMove(Direction move,boolean DoIMove){
 		if(DoIMove){
-			board[MyPos.GetX()] = board[MyPos.GetX()] ^ (1<<MyPos.GetY());
+			board[MyPos.GetX()][MyPos.GetY()] = '-';
 			MyPos.Move(Direction.GetOpposite(move));
 		}else{
-			board[EnemyPos.GetX()] = board[EnemyPos.GetX()] ^ (1<<EnemyPos.GetY());
+			board[EnemyPos.GetX()][EnemyPos.GetY()] = '-';
 			EnemyPos.Move(Direction.GetOpposite(move));
 		}
 	}
@@ -392,7 +451,4 @@ class Position {
 	public boolean equals(Position p){
 		return (X == p.X) && (Y == p.Y);
 	}
-	
-	
-	
 }
