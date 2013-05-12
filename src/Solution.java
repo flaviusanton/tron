@@ -444,7 +444,21 @@ class Board {
 			}
 			
 		}
-		return diff;
+		return diff + numberOfVisitedNeighbours(me);
+	}
+
+	private int numberOfVisitedNeighbours(Position me) {
+		int count = 0;
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		
+		for (int i = 0; i < 4; ++i) {
+			if (isValid(me.GetX() + dx[i], me.GetY() + dy[i])) {
+				if (board[me.GetX() + dx[i]][me.GetY() + dy[i]] != '-')
+					count++;
+			}
+		}
+		return count;
 	}
 
 	public int bfs(Position start) {
