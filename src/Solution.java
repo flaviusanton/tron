@@ -4,6 +4,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.Random;
 
 public class Solution {
 	public static final int INF = 100000;
@@ -125,7 +126,10 @@ public class Solution {
 				MAXDEPTH = 9;
 			}
 			
-			move = GetMove(b);
+			if (b.canReach(MyPos, EnemyPos))
+				move = GetMove(b);
+			else
+				move = PathPool.GetMove(b);
 			System.out.println(move.toString());
 	}
 
@@ -156,6 +160,10 @@ class Board {
 		Board.Height = Height;
 		this.board = new char[Height][Width];		
 		Board.MyChar = MyChar;
+	}
+	
+	public char[][] getBoard() {
+		return board;
 	}
 	
 	public Direction searchForKeyPositions() {
@@ -526,6 +534,10 @@ class Board {
 			EnemyPos.Move(Direction.GetOpposite(move));
 		}
 	}
+
+	public Position GetMyPos() {
+		return MyPos;
+	}
 	
 
 }
@@ -619,6 +631,19 @@ class Position {
 		this.Y = Y;
 	}
 	
+	public Direction GetDirectionOf(Position p) {
+			if(X < p.X){
+				return Direction.DOWN;
+			}
+			if(X > p.X){
+				return Direction.UP;
+			}
+			if(Y < p.Y){
+				return Direction.RIGHT;
+			}
+			return Direction.LEFT;
+	}
+	
 	public void Move(Direction way){
 		switch(way){
 		case UP:
@@ -641,7 +666,282 @@ class Position {
 	public boolean equals(Position p){
 		return (X == p.X) && (Y == p.Y);
 	}
-	
-	
-	
 }
+
+class PathPool {
+	static final int POOLSIZE = 200;
+	static int OFFSET = 10;
+	static float PRESSURE = 1;
+	static float PRESSUREUP = 1.8f;
+	static float PRESSUREDOWN = 0.7f;
+	static int ITERATIONS = 6;
+	static final Random gen = new Random();
+	private static CandidatePath[] pool = new CandidatePath[POOLSIZE];
+	private static int PathLen = -1;
+	static boolean initialBoard[][] = new boolean[Board.Height][Board.Width];
+	
+	public static void GenInitialPool(Board b) {
+		boolean viz[][] = new boolean[Board.Height][Board.Width];
+		Position[] path = new Position[CandidatePath.MAXPATHLEN];
+		int p = 0;
+		for (int i = 0; i < Board.Height; i++) {
+			for (int j = 0; j < Board.Width; j++) {
+				if (b.getBoard()[i][j] != '-') {
+					viz[i][j] = true;
+					initialBoard[i][j] = true;
+				}
+			}
+		}
+		path[0] = b.GetMyPos();
+		viz[path[0].GetX()][path[0].GetY()] = true;
+		Dfs(viz, path, p,pool);
+	}
+
+	public static void Dfs(boolean[][] viz, Position[] path, int p,CandidatePath[] pool) {
+		Position aux = path[p];
+		Position pos = GetNewPos(aux, viz);
+		if (pos == null) {
+			CandidatePath newPath = new CandidatePath(path, p);
+			AddNewPath(newPath,pool);
+		} else {
+			do{
+				viz[pos.GetX()][pos.GetY()] = true;
+				path[++p] = pos;
+				Dfs(viz, path, p,pool);
+				path[p--] = null;
+				pos = GetNewPos(aux, viz);
+			}while(pos != null);
+		}
+		
+	}
+
+	public static void AddNewPath(CandidatePath path,CandidatePath[] pool) {
+		if(PathLen<POOLSIZE-1){
+			pool[++PathLen] = path;
+			PushUp(PathLen,pool);
+		}else if(path.len > pool[PathLen].len){
+			pool[PathLen] = path;
+			PushUp(PathLen,pool);
+		}
+	}
+	
+	public static void PushUp(int pos,CandidatePath[] pool){
+		CandidatePath aux;
+		while(pos > 0 && pool[pos].len > pool[pos-1].len){
+			aux = pool[pos];
+			pool[pos] = pool[pos-1];
+			pool[pos-1] = aux;
+			pos--;
+		}
+	}
+	
+	// For testing purposes
+	public static void PrintPool() {
+		int i, j;
+		System.out.println(PathLen);
+		for (i = 0; i <= PathLen; i++) {
+			/*for (j = 0; j <= pool[i].len; j++) {
+				System.out.print(pool[i].path[j]);
+			}*/
+			System.out.print(pool[i].len+" ");
+			if(i%20 == 0){
+				System.out.println();
+			}
+		}
+
+	}
+
+	public static Position GetNewPos(Position pos, boolean[][] viz) {
+		int dx[] = { 0, 1, -1, 0 };
+		int dy[] = { -1, 0, 0, 1 };
+		Position v[] = new Position[4];
+		int nvecini[] = new int[4];
+		int l = -1;
+		int nV = 0;
+		int X, Y, R;
+		for (int i = 0; i < 4; i++) {
+			X = pos.GetX() + dx[i];
+			Y = pos.GetY() + dy[i];
+			if ((X>=0) && (Y>=0) && (X<viz.length) && (Y < viz[0].length) && (!viz[X][Y])) {
+				l++;
+				nvecini[l] = GetNVecini(pos.GetX() + dx[i], pos.GetY() + dy[i],
+						viz);
+				v[l] = new Position(X, Y);
+				nV += nvecini[l];
+			}
+		}
+		if(nV == 0){
+			return null;
+		}
+		R = gen.nextInt(nV) + 1;
+		for (int i = 0; i <= l; i++) {
+			R -= nvecini[i];
+			if (R <= 0) {
+				return v[i];
+			}
+		}
+		return null;
+
+	}
+
+	public static int GetNVecini(int x, int y, boolean viz[][]) {
+		int rez = 1;
+		int dx[] = { 0, 1, -1, 0 };
+		int dy[] = { -1, 0, 0, 1 };
+		for (int i = 0; i < 4; i++) {
+			if ((x+dx[i]>=0) && (y+dy[i]>=0) && (x+dx[i]<viz.length) && (y+dy[i] < viz[0].length) && (!viz[x + dx[i]][y + dy[i]])) {
+				rez++;
+			}
+		}
+
+		return rez;
+	}
+
+	public static void GetNextGen(CandidatePath[] fathers, CandidatePath[] children){
+		int i, j, start;
+		int PrePathLen = PathLen;
+		int k;
+		CandidatePath aux;
+		PathLen = -1;
+		for(i = 0 ; i <= PrePathLen; i++){
+			start = fathers[i].len;
+			start = start - (start*OFFSET)/100;
+			aux = fathers[i];
+			for(j = start ; j <= fathers[i].len;j++){
+				
+				aux.viz[aux.path[j].GetX()][aux.path[j].GetY()] = false;
+				aux.path[j] = null;
+			}
+			for(j = 0 ;j < start ;j ++ ){
+				if(DoesItMutate(j,start)){
+					k = j;
+					j++;
+					for(;j< start;j++){
+						//Curat restul mutarilor
+						aux.viz[aux.path[j].GetX()][aux.path[j].GetY()] = false;
+						aux.path[j] = null;
+					}
+					Dfs(fathers[i].viz,fathers[i].path,k,children);
+				}
+			}
+			fathers[i] = null;
+		}
+		
+	}
+	
+	public static boolean DoesItMutate(int start,int end){
+		float s2 = ((float)start)*PRESSURE;
+		start = ((int)s2);
+		
+		if(start >= end){
+			return true;
+		}
+		int aux = gen.nextInt(end-start);
+		return  aux == 0;
+	}
+	
+	
+	public static Direction GetMove(Board b) {
+		GenInitialPool(b);
+		CandidatePath[] children = new CandidatePath[POOLSIZE];
+		CandidatePath[] aux;
+		int M1 =  pool[0].len,M2;
+		Direction rez = Direction.UP;
+		if(pool[0].path[1] != null){
+			rez = b.GetMyPos().GetDirectionOf(pool[0].path[1]);
+		}
+		
+		for(int i = 0 ;i<= ITERATIONS;i++){
+			GetNextGen(pool, children);
+			aux = pool;
+			pool = children;
+			children = aux;
+			if(pool[0] == null){
+				break;
+			}
+			M2 = pool[0].len;
+			if(((float)M2) / ((float)M1) <= 0.1){
+				PRESSURE *= 1.4;
+			}else{
+				PRESSURE *= 0.7;
+			}
+			if(M2 > M1){
+				M1 = M2;
+				rez = b.GetMyPos().GetDirectionOf(pool[0].path[1]);
+			}
+		}
+		
+		return rez;
+	}
+
+	
+	/*
+	 * Used only for testing
+	 */
+	public static Direction Solve(Board b){
+		
+		GenInitialPool(b);
+		CandidatePath[] children = new CandidatePath[POOLSIZE];
+		CandidatePath[] aux;
+		int M1 =  pool[0].len,M2;
+		Direction rez = b.GetMyPos().GetDirectionOf(pool[0].path[1]);
+		
+		for(int i = 0 ;i<= ITERATIONS;i++){
+			GetNextGen(pool, children);
+			aux = pool;
+			pool = children;
+			children = aux;
+			M2 = pool[0].len;
+			if(((float)M2) / ((float)M1) <= 0.1){
+				PRESSURE *= 1.4;
+			}else{
+				PRESSURE *= 0.7;
+			}
+			if(M2 > M1){
+				M1 = M2;
+				rez = b.GetMyPos().GetDirectionOf(pool[0].path[1]);
+			}
+		}
+		//System.out.println("Maximul este:"+M1);
+		//PrintPool();
+		return rez;
+	}
+	
+	
+	static class CandidatePath {
+		static final int MAXPATHLEN = 2500;
+		static final int MAXLEN = 50;
+		Position path[];
+		boolean viz[][];
+		int len = 0;
+
+		public CandidatePath() {
+			path = new Position[MAXPATHLEN];
+			viz = new boolean[MAXLEN][MAXLEN];
+			len = 0;
+		}
+
+		public CandidatePath(CandidatePath p) {
+			path = p.path.clone();
+			viz = p.viz.clone();
+			len = p.len;
+		}
+
+		public CandidatePath(Position[] p, int len) {
+			path = p.clone();
+			int W,H;
+			H = initialBoard.length;
+			W = initialBoard[0].length;
+			viz = new boolean[H][];
+			for(int i = 0 ; i < H; i++){
+				viz[i] = initialBoard[i].clone();
+			}
+			this.len = len;
+			for(int i = 0 ; i <= len ; i++){
+				viz[p[i].GetX()][p[i].GetY()] = true;
+			}
+		}
+
+	}
+}
+
