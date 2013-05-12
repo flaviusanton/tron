@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.LinkedList;
@@ -9,7 +8,6 @@ import java.util.LinkedList;
 public class Solution {
 	public static final int INF = 100000;
 	public static int MAXDEPTH = 18;
-	public static int playerDistance = 0;
 	public static HashMap<char[][], Integer> scores = new HashMap<char[][], Integer>();
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
@@ -117,9 +115,6 @@ public class Solution {
 			b.ReadMap(in);
 			Direction move;
 			
-			playerDistance = (int)Math.sqrt((MyPos.GetX() - EnemyPos.GetX())*(MyPos.GetX() - EnemyPos.GetX())
-					+ (MyPos.GetY() - EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY()));
-			
 			if (Width + Height < 31) {
 				MAXDEPTH = 17;
 			} else if (Width + Height < 51) {
@@ -133,6 +128,7 @@ public class Solution {
 			move = GetMove(b);
 			System.out.println(move.toString());
 	}
+
 }
 
 
@@ -162,6 +158,162 @@ class Board {
 		Board.MyChar = MyChar;
 	}
 	
+	public Direction searchForKeyPositions() {
+		boolean[][] visited = new boolean[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (board[i][j] == '-') ? false : true;
+			}
+		}
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				if (!visited[i][j] && canReach(MyPos, new Position(i, j))) {
+					if ((distFrom(MyPos, new Position(i, j)) < distFrom(EnemyPos, new Position(i, j)))
+							&& (reachableCells(MyPos) > reachableCells(EnemyPos))) {
+						return goTowards(new Position(i, j));
+						}
+				}
+			}
+		}
+		if (canReach(MyPos, new Position(Height/2, Width/2)))
+			return goTowards(new Position(Height/2, Width/2));
+		else
+			return goTowards(EnemyPos);
+	}
+	
+	public Direction goTowards(Position position) {
+		Queue<Position> q = new LinkedList<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		
+		int[][] from = new int[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (board[i][j] == '-') ? false : true;
+			}
+		}
+		q.add(MyPos);
+		
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		
+		while (!q.isEmpty()) {
+			Position pos = q.poll();
+			visited[pos.GetX()][pos.GetY()] = true;
+			
+			for (int i = 0; i < 4; i++) {
+				if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
+						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
+							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
+							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
+							from[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = i;
+						}
+			}
+		}
+		return goBack(position, from);
+	}
+
+	private Direction goBack(Position pos, int[][] from) {
+		Position newPos;
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		
+		newPos = new Position(pos.GetX() - dx[from[pos.GetX()][pos.GetY()]], 
+							  pos.GetY() - dy[from[pos.GetX()][pos.GetY()]]);
+		
+		if (newPos.GetX() == MyPos.GetX() && newPos.GetY() == MyPos.GetY()) {
+			switch (from[pos.GetX()][pos.GetY()]) {
+				case 0:
+					return Direction.UP;
+				case 1:
+					return Direction.RIGHT;
+				case 2:
+					return Direction.DOWN;
+				case 3:
+					return Direction.LEFT;
+				default:
+					return Direction.NONE;
+			}
+		}
+		return goBack(newPos, from);
+	}
+
+	private int distFrom(Position start, Position end) {
+		Queue<Position> q = new LinkedList<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		
+		int[][] dist = new int[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (board[i][j] == '-') ? false : true;
+			}
+		}
+		q.add(start);
+		
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		
+		while (!q.isEmpty()) {
+			Position pos = q.poll();
+			visited[pos.GetX()][pos.GetY()] = true;
+			
+			for (int i = 0; i < 4; i++) {
+				
+				if (pos.GetX() + dx[i] == end.GetX() 
+						&& pos.GetY() + dy[i] == end.GetY()) {
+					return dist[pos.GetX()][pos.GetY()] + 1;
+				}
+				if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
+						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
+							q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
+							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
+							
+							dist[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = 
+									dist[pos.GetX()][pos.GetY()] + 1;
+						}
+			}
+		}
+		return -1;
+	}
+
+	public boolean canReach(Position from, Position where) {
+		Queue<Position> q = new LinkedList<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (board[i][j] == '-') ? false : true;
+			}
+		}
+		q.add(from);
+		
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		
+		while (!q.isEmpty()) {
+			Position pos = q.poll();
+			visited[pos.GetX()][pos.GetY()] = true;
+			
+			for (int i = 0; i < 4; i++) {
+				if (pos.GetX() + dx[i] == where.GetX() 
+						&& pos.GetY() + dy[i] == where.GetY()) {
+					return true;
+				}
+				
+				if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
+						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
+					
+					q.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
+					visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
+				}
+			}
+		}
+		return false;
+	}
+
 	//Sper sa folosim constructorul asta
 	public Board(Board b){
 		MyPos = new Position(b.MyPos);
@@ -219,7 +371,7 @@ class Board {
 		}
 	}
 	
-	private boolean CheckMove(Direction move,Position Pos){
+	public boolean CheckMove(Direction move,Position Pos){
 		if(move == Direction.NONE){
 			return false;//Just to make sure
 		}
@@ -233,11 +385,60 @@ class Board {
 	}
 	
 	public int Eval(){
-		int x = bfs(MyPos);
-		if (x == -1) return reachableCells(MyPos) - reachableCells(EnemyPos);
-		return x;
+		return reachableCellsExclusive(MyPos, EnemyPos);
 	}
 	
+	private int reachableCellsExclusive(Position me, Position him) {
+		Queue<Position> myQ  = new LinkedList<Position>();
+		Queue<Position> hisQ = new LinkedList<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (board[i][j] == '-') ? false : true;
+			}
+		}
+		myQ.add(me);
+		hisQ.add(him);
+		
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		int diff = 0;
+		
+		while (!myQ.isEmpty() || !hisQ.isEmpty()) {
+			Position pos;
+			if (!myQ.isEmpty()) {
+				pos = myQ.poll();
+				visited[pos.GetX()][pos.GetY()] = true;
+			
+				for (int i = 0; i < 4; i++) {
+					if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
+						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
+							myQ.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
+							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
+							diff++;
+					}
+				}
+			}
+			
+			if (!hisQ.isEmpty()) {
+				pos = hisQ.poll();
+				visited[pos.GetX()][pos.GetY()] = true;
+			
+				for (int i = 0; i < 4; i++) {
+					if (isValid(pos.GetX() + dx[i], pos.GetY() + dy[i]) 
+						&& !visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]]) {
+							hisQ.add(new Position(pos.GetX() + dx[i], pos.GetY() + dy[i]));
+							visited[pos.GetX() + dx[i]][pos.GetY() + dy[i]] = true;
+							diff--;
+					}
+				}
+			}
+			
+		}
+		return diff;
+	}
+
 	public int bfs(Position start) {
 		Queue<Position> q = new LinkedList<Position>();
 		boolean[][] visited = new boolean[Height][Width];
