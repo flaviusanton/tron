@@ -3,6 +3,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -156,11 +157,11 @@ public class Solution {
 //			}
 //		}
 		
-		//if(b.CanReachEnemy() >= 0){
+		if(b.CanReachEnemy() >= 0){
 			move = PathPool.GetMove(b);
 			System.out.println(move);
 			
-		//}else{
+		}else{
 			
 //		
 		
@@ -171,12 +172,12 @@ public class Solution {
 		 * EnemyPos.GetY())*(MyPos.GetY() - EnemyPos.GetY()));
 		 */
 		
-//		if (Width + Height < 31) { MAXDEPTH = 15; } else if (Width + Height <
-//		51) { MAXDEPTH = 13; } else if (Width + Height < 71) { MAXDEPTH = 9;
-//		} else { MAXDEPTH = 7; }
-//		move = GetMove(b);
-//		System.out.println(move.toString());
-//		}
+		if (Width + Height < 31) { MAXDEPTH = 15; } else if (Width + Height <
+		51) { MAXDEPTH = 13; } else if (Width + Height < 71) { MAXDEPTH = 9;
+		} else { MAXDEPTH = 7; }
+		move = GetMove(b);
+		System.out.println(move.toString());
+		}
 	}
 }
 
@@ -307,15 +308,44 @@ class Board {
 	}
 
 	public int Eval() {
-		// To Be Done in the future >:)
-
-		// if ((Board.Width > 30 || Board.Height > 30) &&
-		// Solution.playerDistance > 20) {
-		// return 0;
-		// }
+//		int x = bfs(MyPos);
+//		if (x == -1) return reachableCells(MyPos) - reachableCells(EnemyPos);
+//		return x;
 		return longestReachebleRoad();
 	}
-
+	
+	public int bfs(Position start) {
+		Queue<Position> q = new LinkedList<Position>();
+		boolean[][] visited = new boolean[Height][Width];
+		for (int i = 0;i < Height;i ++)
+			for (int j = 0;j < Width;j ++)
+				if ((board[i] & (((long)1)<<j)) != 0) visited[i][j] = false;
+				else visited[i][j] = true;
+		q.add(start);
+		visited[start.GetX()][start.GetY()] = true;
+		int[] dx = {-1,0,1,0};
+		int[] dy = {0,1,0,-1};
+		int counter = 0;
+		while (!q.isEmpty()) {
+			Position pos = q.poll();
+			if (pos.GetX() == EnemyPos.GetX() && pos.GetY() == EnemyPos.GetY()) {
+				return counter;
+			}
+			counter ++;
+			for (int k = 0;k < 4;k ++)
+				if (isValid(pos.GetX() + dx[k], pos.GetY() + dy[k]) && 
+						visited[pos.GetX() + dx[k]][pos.GetY() + dy[k]] == false) {
+					q.add(new Position(pos.GetX() + dx[k],pos.GetY() + dy[k]));
+					visited[pos.GetX() + dx[k]][pos.GetY() + dy[k]] = true;
+				}
+				else if (isValid(pos.GetX() + dx[k], pos.GetY() + dy[k]) &&
+						pos.GetX() + dx[k] == EnemyPos.GetX() && pos.GetY() + dy[k] == EnemyPos.GetY()) {
+					return counter;
+				}
+		}
+		return -1;
+	}
+	
 	private int longestReachebleRoad() {
 		Position start = new Position(EnemyPos);
 		int p = 0, u = 0, count = 0;
@@ -872,7 +902,7 @@ class PathPool {
 				rez = b.GetMyPos().GetDirectionOf(pool[0].path[1]);
 			}
 		}
-		System.out.println("Maximul este:"+M1);
+		//System.out.println("Maximul este:"+M1);
 		//PrintPool();
 		return rez;
 	}
