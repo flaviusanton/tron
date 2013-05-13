@@ -106,3 +106,37 @@ Link-ul cu meciul care dorim sa fie luat in considerare:
 https://www.hackerrank.com/contests/bucharest-tron/submissions/game/632611
 Cele 8 batalii care dorim sa fie luate in considerare sunt urmatoarele:
 1,3,4,5,6,7,8,15
+
+
+Etapa 3:
+Observand ca botul de la etapa 2 ar putea sa fie imbunatatit am ales sa schimbam
+un functia de evaluare pentru a implementa o noua euristica.Raul a venit cu o
+solutie de a implementa o euristica ce se foloseste de algoritmi genetici.Sursa
+teoretica se gaseste la urmatorul link:
+https://attachment.fbsbx.com/file_download.php?id=428738173889793&eid=AStPoEHko2490xpZHQ1u4yqq8oX9iplftBsI1--X1uN-aTfbL1o0YpYaH1wAIOVKL_A&inline=1&ext=1368466191&hash=ASv_O15AxI23I0I6.Din
+pacate acesta solutie s-a dovedit a fi ineficienta si nu ne-a ajutat foarte mult
+pentru a bate bot-ul de la etapa 3.Astfel, am ales sa ne bazam tot pe ideea de
+la etapa 2 si acum am incercat tot sa folosim o functie de evaluare care face
+bfs de 2 ori (pentru jucatorul curent si pentru adversar) si vede cate celule
+sunt accesibile pentru jucatorul curent inainte ca acestea sa fie atinse de
+catre adversar.Fata de etapa 2 in care faceam bfs pentru ambii jucatori si
+doar calculam diferenta intre numarul de celule atinse de cei doi acum am venit
+cu acesta noua idee care ni se pare destul de buna.
+In mare ne-am bazat tot pe alfa-beta pruning, singurul lucru pe care l-am
+modificat a fost metoda de evaluare.
+
+Contributiile membrilor echipei pentru acesta etapa:
+* Tabacu Raul Constantin (Capitan) - crearea bot-ului care implementeaza o
+euristica ce se bazeaza pe algoritmi genetici, contributii la ideea finala pe
+care am implementat-o.
+* Anton Flavius - implementarea solutiei finale prin implementarea catorva
+metode importante precum Board.canReach(), Board.reachableCellsExclusive().
+* Grosu Maria Cristina - contributii legate de ideea finala a algoritmului
+* Dincu Andrei - Marius - crearea unor metode intermediare de testare a
+euristicii si incercari de imbunatatire a euristiciii finale.Crearea README-ului
+de la etapa 3.
+
+Link-ul cu meciul care dorim sa fie luat in considerare:
+https://www.hackerrank.com/contests/bucharest-tron/submissions/game/647580/all
+Cele 8 batalii care dorim sa fie luate in considerare sunt urmatoarele:
+1,2,4,6,9,10,13,15
