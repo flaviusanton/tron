@@ -127,9 +127,12 @@ public class Solution {
 			}
 			
 			if (b.canReach(MyPos, EnemyPos))
-				move = GetMove(b);
+				Board.solution =0;
 			else
-				move = PathPool.GetMove(b);
+			{
+				Board.solution = 1;
+			}
+			move = GetMove(b);
 			System.out.println(move.toString());
 	}
 
@@ -145,6 +148,7 @@ public class Solution {
  *
  */
 class Board {
+	public static int solution = 0;
 	private Position MyPos,EnemyPos;
 	private char[][] board;
 	
@@ -153,6 +157,12 @@ class Board {
 	private static char MyChar;
 	private static boolean IsFinished = false;
 	private static boolean HaveIWon = false;
+	
+	private static Position pcritic[] = new Position[2500];
+	private static boolean visited[][]   = new boolean[50][50];
+	int p = 0;
+	
+	
 	public Board(Position MyPos,Position EnemyPos,int Width, int Height,char MyChar){
 		this.MyPos = new Position(MyPos);
 		this.EnemyPos = new Position(EnemyPos);
@@ -363,6 +373,7 @@ class Board {
 			EnemyPos.Move(move);
 		}
 	}
+	
 	//Scrie mutarile in board.Intoarce true daca cei 2 jucatori s-au ciocnit
 	public boolean WriteMoves(){
 		board[MyPos.GetX()][MyPos.GetY()] = MyChar;
@@ -393,7 +404,90 @@ class Board {
 	}
 	
 	public int Eval(){
-		return reachableCellsExclusive(MyPos, EnemyPos);
+		if(solution == 0){
+			return reachebleWithCriticBoth(MyPos,EnemyPos) - reachebleWithCriticBoth(EnemyPos,MyPos);
+		}else {
+			return reachebleWithCriticBoth(MyPos, EnemyPos);
+		}
+	}
+	
+	private int reachebleWithCriticBoth(Position me,Position him){
+		
+		int time[][] = new int[50][50];
+		Queue<Position> hisQ = new LinkedList<Position>();
+		int rez = 0;
+		for (int i = 0; i < Height; i++) {
+			for (int j = 0; j < Width; j++) {
+				visited[i][j] = (board[i][j] == '-') ? false : true;
+			}
+		}
+		hisQ.add(him);
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		//Marcheaza spatiul pe care poate sa il viziteze inamicul
+		while(!hisQ.isEmpty()){
+			Position aux = hisQ.poll();
+			for(int i = 0 ; i < 4 ; i++){
+				if(isValid(aux.GetX() + dx[i], aux.GetY() + dy[i]) && time[aux.GetX()+dx[i]][aux.GetY()+dy[i]] == 0){
+					time[aux.GetX()+dx[i]][aux.GetY()+dy[i]] = time[aux.GetX()][aux.GetY()]+1;
+					hisQ.add(new Position(aux.GetX()+dx[i],aux.GetY()+dy[i]));
+				}
+			}
+		}
+		p = 0;
+		time[MyPos.GetX()][MyPos.GetY()] = 0;
+		rez = BfsWithCritic(me,time);
+		return rez;
+	}
+	private int BfsWithCritic(Position start,int time[][]){
+		int count= 0;
+		int paux = p;
+		int cMax = 0;
+		int auxc = 0;
+		Queue<Position> Q = new LinkedList<Position>();
+		Q.add(start);
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		while(!Q.isEmpty()){
+			Position aux = Q.poll();
+			int X1 = aux.GetX();
+			int Y1 = aux.GetY();
+			for(int i = 0 ;i < 4 ; i++){
+				int X2 = X1 + dx[i];
+				int Y2 = Y1 + dy[i];
+				if(isValid(X2,Y2) && !visited[X2][Y2] && time[X2][Y2] > time[X1][Y1]+1){
+					visited[X2][Y2] = true;
+					time[X2][Y2] = time[X1][Y1]+1;
+					count++;
+					if(isCritic(X2,Y2)){
+						pcritic[p++] = new Position(X2,Y2);
+					}else{
+						Q.add(new Position(X2,Y2));
+					}
+				}
+			}
+			
+		}
+		for(int i = paux; i < p ;i++){
+			auxc = BfsWithCritic(pcritic[i], time);
+			if(auxc > cMax){
+				cMax = auxc;
+			}
+		}
+		p = paux;
+		return count+cMax;
+	}
+	
+	private boolean isCritic(int X, int Y){
+		int[] dx = {-1, 0, 1, 0};
+		int[] dy = {0, 1, 0, -1};
+		int count = 0;
+		for(int i = 0; i< 4 ; i++){
+			if(isValid(X + dx[i], Y + dy[i]) && !visited[X + dx[i]][Y + dy[i]]){
+				count++;
+			}
+		}
+		return count == 0;
 	}
 	
 	private int reachableCellsExclusive(Position me, Position him) {

@@ -106,3 +106,25 @@ Link-ul cu meciul care dorim sa fie luat in considerare:
 https://www.hackerrank.com/contests/bucharest-tron/submissions/game/632611
 Cele 8 batalii care dorim sa fie luate in considerare sunt urmatoarele:
 1,3,4,5,6,7,8,15
+
+Etapa 3:
+
+Implementarea a ramas similara cu cea din etapa I - II cu precizarea ca 
+acum exista doua euristici ambele incearca umplerea spatiului disponibil
+cat mai bine:
+  *daca se poate ajunge la inamic se cauta o pozitie in care numarul de 
+  celule la care "putem ajunge inaintea" inamicului este mai mare
+  *daca nu se poate ajunge la inamic se cauta o pozitie in care numarul 
+  total de celule disponibile este cat mai mare
+Contributiile membrilor echilei:
+  *Anton Flavius - implementarea euristicii descrise pe primul caz
+  *Tabacu Raul - completarea readme-ului pentru etapa 3
+  *Dincu Andrei-Marius - contributii insemnate la ideea euristicii
+  *Grosu Maria - contrbutii importante la ideea euristicii
+  
+Mentionez ca exista prezente in cod metode si clase nefolosite prezente 
+pentru a actiona ca suport pentru dezvoltari viitoare.
+
+
+Link-ul cu meciul care dorim sa fie luat in considerare:
+https://www.hackerrank.com/contests/bucharest-tron/submissions/game/648607
