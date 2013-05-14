@@ -10,6 +10,7 @@ public class Solution {
 	public static final int INF = 100000;
 	public static int MAXDEPTH = 18;
 	public static HashMap<char[][], Integer> scores = new HashMap<char[][], Integer>();
+	public static boolean reach;
 	
 	public static int Maxi(Board b,int depth,int alfa,int beta){
 		
@@ -72,14 +73,30 @@ public class Solution {
 	//returneaza mutarea conform algoritmului minimax.Jucatorul curent este maxi
 	public static Direction GetMove(Board b){
 		int max = -INF,part_max = -INF;
+		
+		int neighs = 1;
 		Direction move = Direction.UP;
 		for(Direction i:Direction.ALL){
 			if(b.CanMove(i, true)){
 				b.Move(i, true);
 				part_max = Mini(b,1,-INF,INF);
-				if(part_max >= max){
+				if(part_max > max){
 					max = part_max;
 					move = i;
+					neighs = b.numberOfVisitedNeighbours(b.GetMyPos());
+				}
+				if (part_max == max) {
+					if (!Solution.reach) {
+						int n = b.numberOfVisitedNeighbours(b.GetMyPos());
+						if (n > neighs) {
+							move = i;
+							neighs = n;
+						}
+					} else {
+						max = part_max;
+						move = i;
+						neighs = b.numberOfVisitedNeighbours(b.GetMyPos());
+					}
 				}
 				b.ClearMove(i, true);
 			}
@@ -125,13 +142,7 @@ public class Solution {
 			} else {
 				MAXDEPTH = 9;
 			}
-			
-			if (b.canReach(MyPos, EnemyPos))
-				Board.solution =0;
-			else
-			{
-				Board.solution = 1;
-			}
+			reach = b.canReach(MyPos, EnemyPos);
 			move = GetMove(b);
 			System.out.println(move.toString());
 	}
@@ -148,7 +159,6 @@ public class Solution {
  *
  */
 class Board {
-	public static int solution = 0;
 	private Position MyPos,EnemyPos;
 	private char[][] board;
 	
@@ -157,12 +167,6 @@ class Board {
 	private static char MyChar;
 	private static boolean IsFinished = false;
 	private static boolean HaveIWon = false;
-	
-	private static Position pcritic[] = new Position[2500];
-	private static boolean visited[][]   = new boolean[50][50];
-	int p = 0;
-	
-	
 	public Board(Position MyPos,Position EnemyPos,int Width, int Height,char MyChar){
 		this.MyPos = new Position(MyPos);
 		this.EnemyPos = new Position(EnemyPos);
@@ -373,7 +377,6 @@ class Board {
 			EnemyPos.Move(move);
 		}
 	}
-	
 	//Scrie mutarile in board.Intoarce true daca cei 2 jucatori s-au ciocnit
 	public boolean WriteMoves(){
 		board[MyPos.GetX()][MyPos.GetY()] = MyChar;
@@ -404,90 +407,7 @@ class Board {
 	}
 	
 	public int Eval(){
-		if(solution == 0){
-			return reachebleWithCriticBoth(MyPos,EnemyPos) - reachebleWithCriticBoth(EnemyPos,MyPos);
-		}else {
-			return reachebleWithCriticBoth(MyPos, EnemyPos);
-		}
-	}
-	
-	private int reachebleWithCriticBoth(Position me,Position him){
-		
-		int time[][] = new int[50][50];
-		Queue<Position> hisQ = new LinkedList<Position>();
-		int rez = 0;
-		for (int i = 0; i < Height; i++) {
-			for (int j = 0; j < Width; j++) {
-				visited[i][j] = (board[i][j] == '-') ? false : true;
-			}
-		}
-		hisQ.add(him);
-		int[] dx = {-1, 0, 1, 0};
-		int[] dy = {0, 1, 0, -1};
-		//Marcheaza spatiul pe care poate sa il viziteze inamicul
-		while(!hisQ.isEmpty()){
-			Position aux = hisQ.poll();
-			for(int i = 0 ; i < 4 ; i++){
-				if(isValid(aux.GetX() + dx[i], aux.GetY() + dy[i]) && time[aux.GetX()+dx[i]][aux.GetY()+dy[i]] == 0){
-					time[aux.GetX()+dx[i]][aux.GetY()+dy[i]] = time[aux.GetX()][aux.GetY()]+1;
-					hisQ.add(new Position(aux.GetX()+dx[i],aux.GetY()+dy[i]));
-				}
-			}
-		}
-		p = 0;
-		time[MyPos.GetX()][MyPos.GetY()] = 0;
-		rez = BfsWithCritic(me,time);
-		return rez;
-	}
-	private int BfsWithCritic(Position start,int time[][]){
-		int count= 0;
-		int paux = p;
-		int cMax = 0;
-		int auxc = 0;
-		Queue<Position> Q = new LinkedList<Position>();
-		Q.add(start);
-		int[] dx = {-1, 0, 1, 0};
-		int[] dy = {0, 1, 0, -1};
-		while(!Q.isEmpty()){
-			Position aux = Q.poll();
-			int X1 = aux.GetX();
-			int Y1 = aux.GetY();
-			for(int i = 0 ;i < 4 ; i++){
-				int X2 = X1 + dx[i];
-				int Y2 = Y1 + dy[i];
-				if(isValid(X2,Y2) && !visited[X2][Y2] && time[X2][Y2] > time[X1][Y1]+1){
-					visited[X2][Y2] = true;
-					time[X2][Y2] = time[X1][Y1]+1;
-					count++;
-					if(isCritic(X2,Y2)){
-						pcritic[p++] = new Position(X2,Y2);
-					}else{
-						Q.add(new Position(X2,Y2));
-					}
-				}
-			}
-			
-		}
-		for(int i = paux; i < p ;i++){
-			auxc = BfsWithCritic(pcritic[i], time);
-			if(auxc > cMax){
-				cMax = auxc;
-			}
-		}
-		p = paux;
-		return count+cMax;
-	}
-	
-	private boolean isCritic(int X, int Y){
-		int[] dx = {-1, 0, 1, 0};
-		int[] dy = {0, 1, 0, -1};
-		int count = 0;
-		for(int i = 0; i< 4 ; i++){
-			if(isValid(X + dx[i], Y + dy[i]) && !visited[X + dx[i]][Y + dy[i]]){
-				count++;
-			}
-		}
-		return count == 0;
+		return reachableCellsExclusive(MyPos, EnemyPos);
 	}
 	
 	private int reachableCellsExclusive(Position me, Position him) {
@@ -541,7 +461,7 @@ class Board {
 		return diff + numberOfVisitedNeighbours(me);
 	}
 
-	private int numberOfVisitedNeighbours(Position me) {
+	public int numberOfVisitedNeighbours(Position me) {
 		int count = 0;
 		int[] dx = {-1, 0, 1, 0};
 		int[] dy = {0, 1, 0, -1};
@@ -845,7 +765,7 @@ class PathPool {
 	
 	// For testing purposes
 	public static void PrintPool() {
-		int i, j;
+		int i;
 		System.out.println(PathLen);
 		for (i = 0; i <= PathLen; i++) {
 			/*for (j = 0; j <= pool[i].len; j++) {
@@ -1037,9 +957,8 @@ class PathPool {
 
 		public CandidatePath(Position[] p, int len) {
 			path = p.clone();
-			int W,H;
+			int H;
 			H = initialBoard.length;
-			W = initialBoard[0].length;
 			viz = new boolean[H][];
 			for(int i = 0 ; i < H; i++){
 				viz[i] = initialBoard[i].clone();
