@@ -1,4 +1,123 @@
-tron
-====
+# Proiect - Tron Game AI
+## Proiectarea Algoritmilor, 2013
 
-Proiect Proiectarea Algoritmilor, Anul II
+### Studenti:
+1. **Tabacu Raul Constantin** (Capitan)
+2. **Anton Flavius**
+3. **Grosu Maria Cristina**
+4. **Dincu Andrei - Marius**
+
+Mecanism de versionare folosit: _Git_
+
+Mediu de dezvoltare: _Eclipse_
+
+#### Etapa 1
+
+Descrierea modului de implementare si a bot-ului pentru etapa 1:
+In implementarea bot-ului nostru am folosit un algoritm clasic de tipul minimax
+asemanator celui din laboratorul 5 de PA.Astfel, pentru aceasta etapa nu am
+incercat sa folosim si tehnica alfa-beta pruning, dar pentru a imbunatati
+nivelul de inteligenta al bot-ului nostru, vom face acest lucru pentru etapele
+urmatoare.In plus,nu am folosit algoritmul negamax, ci pur si simplu am ales
+sa implementam doua functii, una Mini si alta Maxi.Totodata, am ales adancimea
+maxima egala cu 15, iar atunci cand ajungem la o astfel de adancime, vom fi
+nevoiti sa aplicam o functie de evaluare, care pentru momentul de fata intoarce
+de fiecare data valoarea 0.
+Desi complexitatea functiei de evaluare este una scazuta, aceasta a fost
+suficienta pentru a bate botii pusi la dispozitie de echipa de la PA pentru
+prima etapa.
+
+Alte detalii legate de implementare:
+
+1. tipul enum Direction - reprezinta tipurile de mutari pe care le poate
+face un jucator la un anumit pas considerand ca acesta este nerestrictionat
+(UP,DOWN,LEFT,RIGHT).Aici am implementat si metoda GetOpposite() care intoarce
+mutarea in directia opusa celei date in parametru. In plus, se suprascrie si
+metoda toString(), pentru a afisa  sub forma de sir de caractere mutarea data
+in parametru.
+
+2. clasa Board - codifica o harta si pune la dispozitie cateva metoda importante
+ce implementeaza mutari pe harta.Harta este defapt retinuta sub forma unui
+vector de String-uri (matrice de caractere).
+  - constructorul initializeaza dimensiunea hartii, initializeaza harta si
+memoreaza pozitiile celor 2 jucatori
+  - metoda ReadMap() ofera posibilitatea de citire a hartii
+  - metoda Move() primeste ca parametru directia si o valoare de tip boolean
+care specifica cine muta
+  - metoda WriteMoves() modifica harta si returneaza daca cei doi jucatori s-au
+ciocnit
+  - metoda CanMove() specifica daca poate fi executata mutarea in directia
+specificata in parametru
+  - metoda Eval() - functia de evaluare folosita in algoritmul minimax - pentru
+moment returneaza 0
+  - metoda IsFinished() - specifica daca jocul s-a incheiat
+  - metoda HaveIWon() - specifica daca castigatorul sunt eu
+  - metoda ClearMove() - atunci cand ma intorc din recursivitate, va trebui sa
+ sterg mutarile pe care le-am efectuat in recursivitate
+
+3. metoda main() - efectueaza citirile elementare precum codificarea bot-ului
+meu, apeleaza constructorul pentru crearea unui obiect de tipul Board, apeleaza
+metoda de citire a matricei, apeleaza metoda GetMove(), care intoarce cea mai
+buna mutare, afiseaza mutarea indicata de metoda GetMove().
+
+Contributiile membrilor echipei pentru aceasta etapa:
+
+* Tabacu Raul Constantin (Capitan) - dezvoltarea   scheletului de cod
+pe care se vor dezvolta etapele urmatoare
+* Anton Flavius - completarea scheletului de cod si adaugarea de metode
+suplimentare
+* Grosu Maria Cristina - crearea clasei Board si implementarea unui API eficient
+pentru comunicarea cu obiectele din aceasta clasa.
+* Dincu Andrei-Marius - crearea README-ului si corectarea a catorva mici greseli din
+scheletul de cod
+
+
+
+#### Etapa 2
+
+Implementarea a ramas asemanatoare cu cea din etapa I, singura modificare pe
+care am adus-o a fost sa cream cateva metode suplimentare precum (bfs(),
+reachableCells()) pe care le-am folosit in dezvoltarea euristicii.
+In plus fata de etapa I, am utilizat si mecanismul alpha-beta pruning pentru a
+micsora spatiul de explorare.
+
+Astfel, euristica pe care am ales-o in implementarea functiei de evaluare poate
+fi formulata astfel: efectuam o parcurgere BFS pentru a vedea daca exista cel
+putin o cale intre capetele celor 2 boti.Daca nu exista o astfel de cale atunci
+inseamna ca singura modalitate de a decide invingatorul este sa numaram cate
+celule mai pot parcurge fiecare bot si astfel desemnam castigatorul.Daca exista
+o cale intre capetele celor 2 boti atunci noi am preferat ca bot-ul nostru sa
+fie mai defensiv deoarece din meciurile jucate am vazut ca StageBot2 este destul
+de ofensiv, iar daca ar fi ambii boti ofensivi atunci ar fi  mai mare sansele sa
+se ciocneasca si nu ne dorim egalitate.Astfel in final se va prefera o solutie
+in care capetele celor 2 boti sunt la distanta mai mare, decat atunci cand sunt
+apropiate.
+
+Contributiile membrilor echipei pentru aceasta etapa:
+
+* Tabacu Raul Constantin (Capitan) - crearea unui bot suplimentar care retinea
+harta pe biti si aplica anumite optimizari grozave - acest bot a fost folosit
+pentru testarea botului oficial.Contributii importante la dezvoltarea si
+implementarea euristicilor intermediare si a celei finale.
+* Anton Flavius - crearea metodei reacheableCell() (foarte importanta) care
+returna numarul de celule disponibile dintr-o anumita pozitie(implementa
+algoritmul lui Lee).Contributii importante la ideea euristicii.Implementarea
+unei euristici intermediare care a duc la descoperirea solutiei finale.
+* Grosu Maria Cristina - crearea unor metode suplimentare si contributii
+importante la ideea euristicii
+* Dincu Andrei-Marius - implementarea partiala a euristicii finale descrise mai sus,
+adaugarea tehnicii alfa-beta pruning, completarea README-ului de la etapa 1.
+
+Link-ul cu meciul care dorim sa fie luat in considerare:
+[link](https://www.hackerrank.com/contests/bucharest-tron/submissions/game/632611).
+Cele 8 batalii care dorim sa fie luate in considerare sunt urmatoarele:
+1,3,4,5,6,7,8,15
+
+
+#### Etapa 3-4
+Deoarece am vazut ca bot-ul nostru se comporta destul de bine in lupta cu bot-ul
+de la etapa 3 si din meciurile pe care le-am jucat cu ceilalti oponenti am
+considerat de cuviinta ca nu ar mai trebui sa modificam bot-ul nostru.In plus nu
+cred ca gaseam euristici mai bune decat cele de la etapa 3.
+Astfel, submisia finala ramane: [link](https://www.hackerrank.com/contests/bucharest-tron/submissions/game/653692)
+
