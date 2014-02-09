@@ -1,3 +1,13 @@
+/**
+ * Raul Tabacu (raul.tabacu@gmail.com)
+ * Flavius Anton (f.v.anton@gmail.com)
+ * Andrei Dincu (andrei.dincu@gmail.com)
+ * Cristina Grosu (mariacristina.grosu@gmail.com)
+ *
+ * University Politehnica, Bucharest
+ * 2013
+ */
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
